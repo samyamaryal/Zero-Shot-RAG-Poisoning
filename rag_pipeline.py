@@ -1,6 +1,7 @@
 import io
 import re
 import logging
+import argparse
 from typing import List, Tuple
 
 import torch
@@ -133,8 +134,6 @@ class RAGPipeline:
         texts_a = [query] * len(candidates)
         texts_b = [c[0] for c in candidates]
 
-        print("absdbas", texts_a, texts_b)
-
         enc = self.reranker_tokenizer(
             texts_a,
             texts_b,
@@ -188,11 +187,13 @@ class RAGPipeline:
         # print("Generated text: ", generated_text)
 
         for word in generated_text.split():
-            if mtch:=cmp.match(word):
-                match_flag = (mtch.group() == url)
-                print("Match", match_flag)
+            if mtch:=cmp.match(word): # check if any url exists
+                match_flag = (mtch.group() == url) # check if the specific url passed from cmdline exists
+                # print("Match", match_flag)
                 if match_flag:
                     return match_flag
+            else:
+                return False
 
 
     def get_response(self, query: str) -> str:
@@ -201,8 +202,21 @@ class RAGPipeline:
         prompt = self._build_prompt(query, reranked)
         print("----- Prompt: ", prompt, "\n-----\n\n")
         return self._generate(prompt)
-        # return self.poisoned_test(prompt, url)
 
 if __name__=="__main__":
+    parser = argparse.ArgumentParser(description="Query and URL to look for")
+    parser.add_argument("todo", choices=["generate", "test"])
+    parser.add_argument("-q", "--query")
+    parser.add_argument("-u", "--url")
+
+    args = parser.parse_args()
+    # print(args.todo, args.query, args.url, type(args.todo), type(args.query), type(args.url))
+
     pipeline = RAGPipeline()
-    print(pipeline.get_response("What is cartography?"))
+    if args.todo=="generate":
+        print(pipeline.get_response(args.query))
+    else:
+        if args.url:
+            print(pipeline.poisoned_test(args.query, args.url))
+        else:
+            raise TypeError("pass url as argument to check for poisoning using the -u flag")
