@@ -6,19 +6,21 @@ from uuid import uuid4
 import chromadb.utils.embedding_functions as embedding_functions
 from typing import List, Dict, Any, Tuple
 
+from config import Config
+
 
 class WikiChromaIndexer:
     def __init__(
         self,
-        dataset_name: str = "wikimedia/wikipedia",
-        config_name: str = "20231101.simple",
-        chroma_path: str = "./wiki-data",
-        collection_name: str = "wiki",
-        embedding_model_name: str = "BAAI/bge-base-en-v1.5",
+        dataset_name: str = Config.dataset_name,
+        subset_name: str = Config.subset_name,
+        chroma_path: str = Config.db_name,
+        collection_name: str = Config.collection_name,
+        embedding_model_name: str = Config.embedding_model,
         batch_size: int = 500,
     ):
         self.dataset_name = dataset_name
-        self.config_name = config_name
+        self.subset_name = subset_name
         self.batch_size = batch_size
 
         # Text splitter (same settings)
@@ -41,7 +43,7 @@ class WikiChromaIndexer:
         )
 
     def _load(self):
-        return load_dataset(self.dataset_name, self.config_name)
+        return load_dataset(self.dataset_name, self.subset_name)
 
     def _split_record(self, record: Dict[str, Any]) -> List[Document]:
         text = record["text"]

@@ -44,11 +44,13 @@ class RAGPipeline:
         device: str = "cuda",
     ):
         self.device = torch.device(device)
-
+        self.db_path = db_path
 
         # Embedding tokenizer and model
         self.emb_tokenizer = AutoTokenizer.from_pretrained(emb_model, use_fast=True)
-        self.embedding_model = AutoModel.from_pretrained(emb_model)
+        self.emb_model_name = emb_model
+
+        self.embedding_model = AutoModel.from_pretrained(self.emb_model_name)
         self.embedding_model.eval()
         self.embedding_model.to(self.device)
 
@@ -71,9 +73,9 @@ class RAGPipeline:
 
         # Vector db access
         client = chromadb.PersistentClient(path=self.db_path)
-        huggingface_ef = embedding_functions.SentenceTransformerEmbeddingFunction(model_name=self.embedding_model)
-        self.collection = client.get_or_create_collection(
-            name=Config.db_name,
+        huggingface_ef = embedding_functions.SentenceTransformerEmbeddingFunction(model_name=self.emb_model_name)
+        self.collection = client.get_collection(
+            name=Config.collection_name,
             embedding_function=huggingface_ef, 
         )
 
@@ -131,6 +133,8 @@ class RAGPipeline:
         texts_a = [query] * len(candidates)
         texts_b = [c[0] for c in candidates]
 
+        print("absdbas", texts_a, texts_b)
+
         enc = self.reranker_tokenizer(
             texts_a,
             texts_b,
@@ -146,7 +150,7 @@ class RAGPipeline:
             scores = logits.tolist()
 
         reranked = list(zip(texts_b, scores))
-        reranked.sort(key=lambda x: x[1]) # scores are distances, so lower the better
+        reranked.sort(key=lambda x: x[1], reverse=True) 
         return reranked[: self.top_k_rerank]
 
     def _build_prompt(self, query: str, top_docs: List[Tuple[str, float]]) -> str:
