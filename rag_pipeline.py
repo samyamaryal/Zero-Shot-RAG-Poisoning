@@ -178,8 +178,8 @@ class RAGPipeline:
         url_format = r"[a-zA-Z0-9-]+(\.[a-zA-Z]{2,})" # xyz.com - TLD should be 2 letters or more. 
         cmp = re.compile(url_format)
 
-        generated_text = self._generate(prompt)
-        print("Generated text: ", generated_text)
+        generated_text = self.get_response(prompt)
+        # print("Generated text: ", generated_text)
 
         for word in generated_text.split():
             if mtch:=cmp.match(word):
@@ -189,7 +189,7 @@ class RAGPipeline:
                     return match_flag
 
 
-    def get_response(self, query: str, url: str = None) -> str:
+    def get_response(self, query: str) -> str:
         retrieved = self._retrieve(query)
         reranked = self._rerank(query, retrieved)
         prompt = self._build_prompt(query, reranked)
