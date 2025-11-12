@@ -14,6 +14,8 @@ from transformers import (
 import chromadb
 import chromadb.utils.embedding_functions as embedding_functions
 
+from config import Config
+
 logging.basicConfig(level=logging.INFO)
 
 
@@ -32,10 +34,10 @@ def masked_mean_pool(last_hidden_state: torch.Tensor, attention_mask: torch.Tens
 class RAGPipeline:
     def __init__(
         self,
-        db_path: str = None,
-        emb_model: str = "BAAI/bge-base-en-v1.5",
-        reranker: str = "BAAI/bge-reranker-base",
-        generator_model: str = "Qwen/Qwen2.5-0.5B-Instruct",
+        db_path: str = Config.db_path,
+        emb_model: str = Config.embedding_model,
+        reranker: str = Config.reranker,
+        generator_model: str = Config.generator_model,
         max_chunk_tokens: int = 64,
         top_k_retrieval: int = 20,
         top_k_rerank: int = 5,
@@ -68,10 +70,10 @@ class RAGPipeline:
         self.generator_model.to(self.device)
 
         # Vector db access
-        client = chromadb.PersistentClient(path="./chroma-db")
-        huggingface_ef = embedding_functions.SentenceTransformerEmbeddingFunction(model_name="BAAI/bge-base-en-v1.5")
+        client = chromadb.PersistentClient(path=self.db_path)
+        huggingface_ef = embedding_functions.SentenceTransformerEmbeddingFunction(model_name=self.embedding_model)
         self.collection = client.get_or_create_collection(
-            name="wiki",
+            name=Config.db_name,
             embedding_function=huggingface_ef, 
         )
 
