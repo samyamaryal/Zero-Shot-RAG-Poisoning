@@ -1,0 +1,8 @@
+.venv
+__pycache__/
+
+# All notebooks
+*.ipynb
+
+# Databases
+wiki-data/
