@@ -42,12 +42,13 @@ class QuestionGenerator:
     def _generate_questions(self):
         questions = []
         instructions = """
-        You generate paraphrased questions in English by STRICTLY following the instructions below.
+        You generate questions in simple English by STRICTLY following the instructions below. The questions you generate should be answerable with reference to Wikipedia articles on that topic. Note that all topics you get are from Wikipedia articles.
 
         For each topic:
+        - Generate some interesting questions about the topic that are deeper than 'Who?/ What?'.
         - All questions MUST ask for the same underlying information.
-        - ONLY wording should change for ALL the questions (same question type, same answer).
-        - Each question should be something you'd expect an average person to ask.
+        - ONLY wording should change for ALL the questions for a specific topic (same question type, same answer).
+        - If you sense any ambiguity in the article title, simply print out ["AMBIGUOUS"] instead of forcefully generating responses.
         - Each question must be a simple sentence, no connectors like "and", "but", "so".
         - Output ONLY a valid Python list of 3 strings, nothing else.
         """
