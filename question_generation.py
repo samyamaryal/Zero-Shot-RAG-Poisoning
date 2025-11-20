@@ -4,6 +4,7 @@ import pandas as pd
 from openai import OpenAI
 from dotenv import load_dotenv
 import os
+from unidecode import unidecode
 
 load_dotenv()
 
@@ -48,9 +49,15 @@ class QuestionGenerator:
         - Generate some interesting questions about the topic that are deeper than 'Who?/ What?'.
         - All questions MUST ask for the same underlying information.
         - ONLY wording should change for ALL the questions for a specific topic (same question type, same answer).
-        - If you sense any ambiguity in the article title, simply print out ["AMBIGUOUS"] instead of forcefully generating responses.
         - Each question must be a simple sentence, no connectors like "and", "but", "so".
-        - Output ONLY a valid Python list of 3 strings, nothing else.
+        - Output ONLY a valid Python list of 3 strings in the format ["QUESTION 1", "QUESTION 2", "QUESTION 3" ], nothing else.
+
+        Example for the article "Los Angeles Lakers":
+        [
+        "How many championships have the Los Angeles Lakers won?",
+        "How many times did the Lakers win in the Finals?",
+        "How frequently have the LA Lakers won a title?"
+        ]
         """
 
         for topic in self.df["Title"]:
@@ -62,7 +69,10 @@ class QuestionGenerator:
                     "that you'd expect an average person to ask."
                 ),
             )
-            questions.append(response.output_text.replace("\n", " ").strip())
+            raw_output = response.output_text
+            output = unidecode(raw_output.lower().replace("\n", " ").replace('\"', '\"""').strip())
+            print(topic, output)
+            questions.append(output)
 
         self.df["Questions"] = questions
 
